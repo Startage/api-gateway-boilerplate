@@ -7,7 +7,9 @@ import {
   PipeTransform,
 } from '@nestjs/common';
 
-export class ValidationUserEmailPipe implements PipeTransform, OnModuleInit {
+export class ValidationPendingConfirmEmailPipe
+  implements PipeTransform, OnModuleInit
+{
   constructor(
     @Inject('AUTH_KAFKA_SERVICE') private client: CustomClientKafka,
   ) {}
@@ -21,7 +23,8 @@ export class ValidationUserEmailPipe implements PipeTransform, OnModuleInit {
     const user = await this.client.sendAsync('auth.load-user-by-email', {
       email: value.email,
     });
-    if (user) throw new NotAcceptableException('The email informed is in use');
+    if (user.isConfirmedEmail)
+      throw new NotAcceptableException('The email is confirmed');
     return value;
   }
 }

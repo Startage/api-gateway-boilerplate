@@ -1,72 +1,94 @@
 import { AuthModel } from '@/auth/auth.model';
+import { ResendConfirmEmailDto } from '@/auth/dto/resend-confirm-email.dto';
 import { SignupDto } from '@/auth/dto/signup.dto';
+import { CustomClientKafka } from '@/common/custom-client-kafka';
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { ClientKafka } from '@nestjs/microservices';
-import * as bcrypt from 'bcrypt';
-import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class AuthService implements OnModuleInit {
+  FRONT_URL: string;
   constructor(
     private jwtService: JwtService,
-    @Inject('AUTH_KAFKA_SERVICE') private client: ClientKafka,
-  ) {}
+    @Inject('AUTH_KAFKA_SERVICE') private client: CustomClientKafka,
+    private configService: ConfigService,
+  ) {
+    this.FRONT_URL = this.configService.get('FRONT_URL');
+  }
 
-  onModuleInit() {
-    const requestPatters = ['auth.login', 'auth.signup'];
-    requestPatters.forEach(async (pattern) => {
+  async onModuleInit() {
+    const requestPatters = [
+      'auth.login',
+      'auth.signup',
+      'auth.signup-confirm-email',
+    ];
+    for await (const pattern of requestPatters) {
       this.client.subscribeToResponseOf(pattern);
-      await this.client.connect();
-    });
+    }
+    await this.client.connect();
   }
 
   async validateUser({
-    username,
+    email,
     password,
   }: {
-    username: string;
+    email: string;
     password: string;
   }): Promise<AuthModel> {
-    const user = {
-      username: 'admin',
-      name: 'admin',
-      id: 'f82b1098-4329-4ef2-b20e-92ee30398439',
-      password: '$2b$12$Jb.JfqgAMO84LtCULnBGE.SoFol9vzNE0z0X3n96MJ7r1clIn2O.y',
-      createdAt: new Date(),
-    };
-    if (user) {
-      const { password: hashedPassword, id: userId, ...result } = user;
-      const isValidPassword = await bcrypt.compare(password, hashedPassword);
-      if (isValidPassword)
-        return {
-          ...result,
-          userId,
-        };
-    }
-    return null;
+    const authorization = await this.client.sendAsync('auth.login', {
+      email,
+      password,
+    });
+    return authorization;
   }
 
-  async login(user: AuthModel) {
-    const payload: AuthModel = {
-      username: user.username,
-      userId: user.userId,
-      name: user.name,
-    };
+  async login({ user, refreshToken }: { user: any; refreshToken: any }) {
     return {
-      accessToken: this.jwtService.sign(payload),
-      name: user.name,
+      accessToken: this.jwtService.sign({
+        userId: user.id,
+      }),
+      refreshToken,
+    };
+  }
+
+  async refreshToken({ refreshTokenId }: { refreshTokenId: string }): Promise<{
+    accessToken;
+  }> {
+    const validRefreshToken = await this.client.sendAsync(
+      'auth.load-valid-refresh-token',
+      {
+        refreshTokenId,
+      },
+    );
+    if (!validRefreshToken) return null;
+    return {
+      accessToken: this.jwtService.sign({
+        userId: validRefreshToken.userId,
+      }),
     };
   }
 
   async signup({ email, name, password, phone }: SignupDto) {
-    await firstValueFrom(
-      this.client.send('auth.signup', {
-        email,
-        name,
-        password,
-        phone,
-      }),
-    );
+    await this.client.sendAsync('auth.signup', {
+      email,
+      name,
+      password,
+      phone,
+      baseUrlConfirmation: `${this.FRONT_URL}/auth/confirm-email`,
+    });
+  }
+
+  async resendSignupConfirmEmail({ email }: ResendConfirmEmailDto) {
+    await this.client.emit('auth.resend-signup-confirm-email', {
+      email,
+      baseUrlConfirmation: `${this.FRONT_URL}/auth/confirm-email`,
+    });
+  }
+
+  async signupConfirmEmail({ confirmToken }: { confirmToken: string }) {
+    await this.client.sendAsync('auth.signup-confirm-email', {
+      confirmToken,
+    });
   }
 }

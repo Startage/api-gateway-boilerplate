@@ -1,5 +1,7 @@
 import { JwtStrategy } from '@/auth/strategies/jwt.strategy';
 import { LocalStrategy } from '@/auth/strategies/local.strategy';
+import { CustomClientKafka } from '@/common/custom-client-kafka';
+import { KafkaProviderFactory } from '@/common/provider/kafka-provider-factory';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -26,30 +28,11 @@ import { AuthService } from './auth.service';
     AuthService,
     LocalStrategy,
     JwtStrategy,
-    {
+    KafkaProviderFactory.create({
       provide: 'AUTH_KAFKA_SERVICE',
-      useFactory: (configService: ConfigService) => {
-        const brokersStr = configService.get('KAFKA_BROKERS');
-        let brokers = [];
-        if (brokersStr) {
-          brokers = brokersStr.split(',').filter((brokerUrl) => !!brokerUrl);
-        }
-        return ClientProxyFactory.create({
-          transport: Transport.KAFKA,
-          options: {
-            client: {
-              clientId: 'auth',
-              brokers: brokers,
-            },
-            consumer: {
-              groupId: 'auth-consumer',
-              allowAutoTopicCreation: true,
-            },
-          },
-        });
-      },
-      inject: [ConfigService],
-    },
+      clientId: 'auth',
+      groupId: 'auth-consumer',
+    }),
   ],
   controllers: [AuthController],
 })

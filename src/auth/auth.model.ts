@@ -1,5 +1,15 @@
 export type AuthModel = {
-  username: string;
-  name: string;
-  userId: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+    createdAt: string;
+  };
+  refreshToken: {
+    id: string;
+    expiresIn: number;
+    userId: string;
+    createdAt: string;
+  };
 };

@@ -15,6 +15,8 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
     volumes:
       - kafka-store:/var/run/docker.sock
+    depends_on:
+      - zookeeper
 
 volumes:
   kafka-store:
