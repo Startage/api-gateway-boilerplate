@@ -1,28 +1,21 @@
-import { CustomClientKafka } from '@/common/custom-client-kafka';
+import { AuthKafkaProviderService } from '@/kafka-provider/auth-kafka-provider/auth-kafka-provider.service';
+import { AuthSubscribedTopicsEnum } from '@/kafka-provider/auth-kafka-provider/auth-subscribed-topics.enum';
 import {
   ArgumentMetadata,
-  Inject,
   NotAcceptableException,
-  OnModuleInit,
   PipeTransform,
 } from '@nestjs/common';
 
-export class ValidationPendingConfirmEmailPipe
-  implements PipeTransform, OnModuleInit
-{
-  constructor(
-    @Inject('AUTH_KAFKA_SERVICE') private client: CustomClientKafka,
-  ) {}
-
-  async onModuleInit() {
-    this.client.subscribeToResponseOf('auth.load-user-by-email');
-    await this.client.connect();
-  }
+export class ValidationPendingConfirmEmailPipe implements PipeTransform {
+  constructor(private authKafkaProviderService: AuthKafkaProviderService) {}
 
   async transform(value: any, metadata: ArgumentMetadata): Promise<any> {
-    const user = await this.client.sendAsync('auth.load-user-by-email', {
-      email: value.email,
-    });
+    const user = await this.authKafkaProviderService.sendAsync(
+      AuthSubscribedTopicsEnum.LOAD_USER_BY_EMAIL,
+      {
+        email: value.email,
+      },
+    );
     if (user.isConfirmedEmail)
       throw new NotAcceptableException('The email is confirmed');
     return value;

@@ -2,7 +2,14 @@ import { Public } from '@/common/guards/jwt-auth.guard';
 import { ApplyResetPasswordDto } from '@/reset-password/dto/apply-reset-password.dto';
 import { RequestResetPasswordDto } from '@/reset-password/dto/request-reset-password.dto';
 import { ResetPasswordService } from '@/reset-password/reset-password.service';
-import { Body, Controller, Param, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  NotAcceptableException,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('reset-password')
@@ -27,10 +34,14 @@ export class ResetPasswordController {
     @Body() applyResetPasswordDto: ApplyResetPasswordDto,
     @Param('id') id: string,
   ) {
-    await this.resetPasswordService.applyResetPassword({
-      id,
-      ...applyResetPasswordDto,
-    });
-    return 'Senha alterada com sucesso';
+    try {
+      await this.resetPasswordService.applyResetPassword({
+        id,
+        ...applyResetPasswordDto,
+      });
+      return 'Senha alterada com sucesso';
+    } catch (err) {
+      throw new NotAcceptableException();
+    }
   }
 }

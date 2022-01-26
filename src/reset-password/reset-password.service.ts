@@ -1,32 +1,29 @@
-import { CustomClientKafka } from '@/common/custom-client-kafka';
+import { AuthKafkaProviderService } from '@/kafka-provider/auth-kafka-provider/auth-kafka-provider.service';
+import { AuthSubscribedTopicsEnum } from '@/kafka-provider/auth-kafka-provider/auth-subscribed-topics.enum';
+import { AuthUnsubscribedTopicsEnum } from '@/kafka-provider/auth-kafka-provider/auth-unsubscribed-topics.enum';
 import { ApplyResetPasswordDto } from '@/reset-password/dto/apply-reset-password.dto';
 import { RequestResetPasswordDto } from '@/reset-password/dto/request-reset-password.dto';
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class ResetPasswordService implements OnModuleInit {
+export class ResetPasswordService {
   FRONT_URL: string;
   constructor(
-    @Inject('AUTH_KAFKA_SERVICE') private client: CustomClientKafka,
+    private authKafkaProviderService: AuthKafkaProviderService,
     private configService: ConfigService,
   ) {
     this.FRONT_URL = this.configService.get('FRONT_URL');
   }
 
-  async onModuleInit() {
-    const requestPatters = ['auth.apply-reset-password'];
-    for await (const pattern of requestPatters) {
-      this.client.subscribeToResponseOf(pattern);
-      await this.client.connect();
-    }
-  }
-
   async requestResetPassword({ email }: RequestResetPasswordDto) {
-    await this.client.emit('auth.request-reset-password', {
-      email,
-      baseUrlResetPassword: `${this.FRONT_URL}/auth/reset-password`,
-    });
+    this.authKafkaProviderService.emit(
+      AuthUnsubscribedTopicsEnum.REQUEST_RESET_PASSWORD,
+      {
+        email,
+        baseUrlResetPassword: `${this.FRONT_URL}/auth/reset-password`,
+      },
+    );
   }
 
   async applyResetPassword({
@@ -35,9 +32,12 @@ export class ResetPasswordService implements OnModuleInit {
   }: ApplyResetPasswordDto & {
     id: string;
   }) {
-    return this.client.sendAsync('auth.apply-reset-password', {
-      id,
-      password,
-    });
+    return this.authKafkaProviderService.sendAsync(
+      AuthSubscribedTopicsEnum.APPLY_RESET_PASSWORD,
+      {
+        id,
+        password,
+      },
+    );
   }
 }

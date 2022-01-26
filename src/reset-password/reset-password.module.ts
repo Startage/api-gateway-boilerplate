@@ -1,17 +1,12 @@
-import { KafkaProviderFactory } from '@/common/provider/kafka-provider-factory';
+import { AuthKafkaProviderService } from '@/kafka-provider/auth-kafka-provider/auth-kafka-provider.service';
+import { KafkaProviderModule } from '@/kafka-provider/kafka-provider.module';
 import { Module } from '@nestjs/common';
 import { ResetPasswordService } from './reset-password.service';
 import { ResetPasswordController } from './reset-password.controller';
 
 @Module({
-  providers: [
-    ResetPasswordService,
-    KafkaProviderFactory.create({
-      provide: 'AUTH_KAFKA_SERVICE',
-      clientId: 'auth',
-      groupId: 'auth-consumer',
-    }),
-  ],
+  imports: [KafkaProviderModule],
+  providers: [ResetPasswordService, AuthKafkaProviderService],
   controllers: [ResetPasswordController],
 })
 export class ResetPasswordModule {}

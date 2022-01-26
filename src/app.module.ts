@@ -4,6 +4,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ResetPasswordModule } from './reset-password/reset-password.module';
+import { KafkaProviderModule } from './kafka-provider/kafka-provider.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { ResetPasswordModule } from './reset-password/reset-password.module';
     }),
     AuthModule,
     ResetPasswordModule,
+    KafkaProviderModule,
   ],
   controllers: [],
   providers: [
