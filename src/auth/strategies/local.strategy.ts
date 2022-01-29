@@ -1,5 +1,6 @@
-import { AuthModel } from '@/auth/auth.model';
 import { AuthService } from '@/auth/auth.service';
+import { AuthModel } from '@/common/models/auth.model';
+import { UserModel } from '@/common/models/user.model';
 import { Strategy } from 'passport-local';
 import { PassportStrategy } from '@nestjs/passport';
 import {
@@ -20,7 +21,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(email: string, password: string): Promise<AuthModel['user']> {
+  async validate(email: string, password: string): Promise<UserModel> {
     let authorization;
     try {
       authorization = await this.authService.validateUser({

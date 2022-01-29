@@ -2,6 +2,8 @@ import { AuthService } from '@/auth/auth.service';
 import { LoginDto } from '@/auth/dto/login.dto';
 import { ResendConfirmEmailDto } from '@/auth/dto/resend-confirm-email.dto';
 import { SignupDto } from '@/auth/dto/signup.dto';
+import { UpdateUserPasswordDto } from '@/auth/dto/update-user-password.dto';
+import { UpdateUserDto } from '@/auth/dto/update-user.dto';
 import { ValidationPendingConfirmEmailPipe } from '@/auth/pipes/validation-pending-confirm-email.pipe';
 import { ValidationUserEmailPipe } from '@/auth/pipes/validation-user-email.pipe';
 import { ApiBearerAuthJwt } from '@/common/decorators/api-bearer-auth-jwt';
@@ -77,7 +79,41 @@ export class AuthController {
 
   @Get('profile')
   @ApiBearerAuthJwt()
-  getProfile(@Request() req) {
-    return req.user;
+  async getProfile(@Request() req) {
+    return this.authService.loadUserById({
+      userId: req.user.id,
+    });
+  }
+
+  @Put('profile')
+  @ApiBearerAuthJwt()
+  async updateUser(
+    @Request() req,
+    @Body() { phone, name, avatarUrl }: UpdateUserDto,
+  ) {
+    return this.authService.updateUserById({
+      phone,
+      name,
+      avatarUrl,
+      userId: req.user.id,
+    });
+  }
+
+  @Put('profile/password')
+  @ApiBearerAuthJwt()
+  async updateUserPassword(
+    @Request() req,
+    @Body()
+    { password, currentPassword }: UpdateUserPasswordDto,
+  ) {
+    try {
+      await this.authService.updateUserPasswordById({
+        password,
+        currentPassword,
+        userId: req.user.id,
+      });
+    } catch (err) {
+      throw new NotAcceptableException('Invalid current password');
+    }
   }
 }

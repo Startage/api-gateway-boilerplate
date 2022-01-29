@@ -1,6 +1,9 @@
-import { AuthModel } from '@/auth/auth.model';
 import { ResendConfirmEmailDto } from '@/auth/dto/resend-confirm-email.dto';
 import { SignupDto } from '@/auth/dto/signup.dto';
+import { UpdateUserPasswordDto } from '@/auth/dto/update-user-password.dto';
+import { UpdateUserDto } from '@/auth/dto/update-user.dto';
+import { AuthModel } from '@/common/models/auth.model';
+import { UserModel } from '@/common/models/user.model';
 import { AuthKafkaProviderService } from '@/kafka-provider/auth-kafka-provider/auth-kafka-provider.service';
 import { AuthSubscribedTopicsEnum } from '@/kafka-provider/auth-kafka-provider/auth-subscribed-topics.enum';
 import { AuthUnsubscribedTopicsEnum } from '@/kafka-provider/auth-kafka-provider/auth-unsubscribed-topics.enum';
@@ -36,11 +39,9 @@ export class AuthService {
     return authorization;
   }
 
-  async login({ user, refreshToken }: { user: any; refreshToken: any }) {
+  async login({ user, refreshToken }: AuthModel) {
     return {
-      accessToken: this.jwtService.sign({
-        userId: user.id,
-      }),
+      accessToken: this.jwtService.sign(user),
       refreshToken,
     };
   }
@@ -56,9 +57,7 @@ export class AuthService {
     );
     if (!validRefreshToken) return null;
     return {
-      accessToken: this.jwtService.sign({
-        userId: validRefreshToken.userId,
-      }),
+      accessToken: this.jwtService.sign(validRefreshToken.user),
     };
   }
 
@@ -90,6 +89,49 @@ export class AuthService {
       AuthSubscribedTopicsEnum.SIGNUP_CONFIRM_EMAIL,
       {
         confirmToken,
+      },
+    );
+  }
+
+  async loadUserById({ userId }: { userId: string }): Promise<UserModel> {
+    return await this.authKafkaProviderService.sendAsync(
+      AuthSubscribedTopicsEnum.LOAD_USER_BY_ID,
+      {
+        userId: userId,
+      },
+    );
+  }
+
+  async updateUserById({
+    phone,
+    name,
+    avatarUrl,
+    userId,
+  }: UpdateUserDto & { userId: string }): Promise<UserModel> {
+    return await this.authKafkaProviderService.sendAsync(
+      AuthSubscribedTopicsEnum.UPDATE_USER_BY_ID,
+      {
+        userId: userId,
+        phone,
+        name,
+        avatarUrl,
+      },
+    );
+  }
+
+  async updateUserPasswordById({
+    password,
+    currentPassword,
+    userId,
+  }: Omit<UpdateUserPasswordDto, 'passwordConfirmation'> & {
+    userId: string;
+  }): Promise<UserModel> {
+    return await this.authKafkaProviderService.sendAsync(
+      AuthSubscribedTopicsEnum.CHANGE_USER_PASSWORD_BY_ID,
+      {
+        userId: userId,
+        password,
+        currentPassword,
       },
     );
   }
