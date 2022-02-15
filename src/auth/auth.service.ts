@@ -4,9 +4,9 @@ import { UpdateUserPasswordDto } from '@/auth/dto/update-user-password.dto';
 import { UpdateUserDto } from '@/auth/dto/update-user.dto';
 import { AuthModel } from '@/common/models/auth.model';
 import { UserModel } from '@/common/models/user.model';
-import { AuthKafkaProviderService } from '@/kafka-provider/auth-kafka-provider/auth-kafka-provider.service';
-import { AuthSubscribedTopicsEnum } from '@/kafka-provider/auth-kafka-provider/auth-subscribed-topics.enum';
-import { AuthUnsubscribedTopicsEnum } from '@/kafka-provider/auth-kafka-provider/auth-unsubscribed-topics.enum';
+import { AuthSubscribedTopicsEnum } from '@/kafka/kafka-auth/auth-subscribed-topics.enum';
+import { AuthUnsubscribedTopicsEnum } from '@/kafka/kafka-auth/auth-unsubscribed-topics.enum';
+import { KafkaAuthService } from '@/kafka/kafka-auth/kafka-auth.service';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -17,7 +17,7 @@ export class AuthService {
   constructor(
     private jwtService: JwtService,
     private configService: ConfigService,
-    private authKafkaProviderService: AuthKafkaProviderService,
+    private authKafkaProviderService: KafkaAuthService,
   ) {
     this.FRONT_URL = this.configService.get('FRONT_URL');
   }

@@ -1,7 +1,7 @@
 import { KafkaProviderFactory } from '@/common/provider/kafka-provider-factory';
-import { StorageKafkaProviderService } from '@/kafka-provider/storage-kafka-provider/storage-kafka-provider.service';
+import { KafkaAuthService } from '@/kafka/kafka-auth/kafka-auth.service';
+import { KafkaStorageService } from '@/kafka/kafka-storage/kafka-storage.service';
 import { Module } from '@nestjs/common';
-import { AuthKafkaProviderService } from './auth-kafka-provider/auth-kafka-provider.service';
 
 const authKafkaProvider = KafkaProviderFactory.create({
   provide: 'AUTH_KAFKA_SERVICE',
@@ -16,16 +16,11 @@ const storageKafkaProvider = KafkaProviderFactory.create({
 
 @Module({
   providers: [
-    AuthKafkaProviderService,
-    StorageKafkaProviderService,
+    KafkaAuthService,
+    KafkaStorageService,
     authKafkaProvider,
     storageKafkaProvider,
   ],
-  exports: [
-    AuthKafkaProviderService,
-    StorageKafkaProviderService,
-    authKafkaProvider,
-    storageKafkaProvider,
-  ],
+  exports: [KafkaAuthService, KafkaStorageService],
 })
-export class KafkaProviderModule {}
+export class KafkaModule {}

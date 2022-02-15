@@ -1,17 +1,17 @@
 import { CustomClientKafka } from '@/common/custom-client-kafka';
-import { StorageSubscribedTopicsEnum } from '@/kafka-provider/Storage-kafka-provider/Storage-subscribed-topics.enum';
-import { StorageUnsubscribedTopicsEnum } from '@/kafka-provider/Storage-kafka-provider/Storage-unsubscribed-topics.enum';
+import { AuthSubscribedTopicsEnum } from '@/kafka/kafka-auth/auth-subscribed-topics.enum';
+import { AuthUnsubscribedTopicsEnum } from '@/kafka/kafka-auth/auth-unsubscribed-topics.enum';
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { Observable } from 'rxjs';
 
 @Injectable()
-export class StorageKafkaProviderService implements OnModuleInit {
+export class KafkaAuthService implements OnModuleInit {
   constructor(
-    @Inject('STORAGE_KAFKA_SERVICE') private client: CustomClientKafka,
+    @Inject('AUTH_KAFKA_SERVICE') private client: CustomClientKafka,
   ) {}
 
   async onModuleInit() {
-    const requestPatters = Object.values(StorageSubscribedTopicsEnum);
+    const requestPatters = Object.values(AuthSubscribedTopicsEnum);
     for await (const pattern of requestPatters) {
       this.client.subscribeToResponseOf(pattern);
     }
@@ -19,14 +19,14 @@ export class StorageKafkaProviderService implements OnModuleInit {
   }
 
   emit<TResult = any, TInput = any>(
-    pattern: StorageSubscribedTopicsEnum | StorageUnsubscribedTopicsEnum,
+    pattern: AuthSubscribedTopicsEnum | AuthUnsubscribedTopicsEnum,
     data: TInput,
   ): Observable<TResult> {
     return this.client.emit(pattern, data);
   }
 
   async sendAsync<TResult = any, TInput = any>(
-    pattern: StorageSubscribedTopicsEnum | StorageUnsubscribedTopicsEnum,
+    pattern: AuthSubscribedTopicsEnum | AuthUnsubscribedTopicsEnum,
     data: TInput,
   ): Promise<TResult> {
     return await this.client.sendAsync(pattern, data);

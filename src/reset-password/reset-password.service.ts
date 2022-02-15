@@ -1,6 +1,6 @@
-import { AuthKafkaProviderService } from '@/kafka-provider/auth-kafka-provider/auth-kafka-provider.service';
-import { AuthSubscribedTopicsEnum } from '@/kafka-provider/auth-kafka-provider/auth-subscribed-topics.enum';
-import { AuthUnsubscribedTopicsEnum } from '@/kafka-provider/auth-kafka-provider/auth-unsubscribed-topics.enum';
+import { AuthSubscribedTopicsEnum } from '@/kafka/kafka-auth/auth-subscribed-topics.enum';
+import { AuthUnsubscribedTopicsEnum } from '@/kafka/kafka-auth/auth-unsubscribed-topics.enum';
+import { KafkaAuthService } from '@/kafka/kafka-auth/kafka-auth.service';
 import { ApplyResetPasswordDto } from '@/reset-password/dto/apply-reset-password.dto';
 import { RequestResetPasswordDto } from '@/reset-password/dto/request-reset-password.dto';
 import { Injectable } from '@nestjs/common';
@@ -10,7 +10,7 @@ import { ConfigService } from '@nestjs/config';
 export class ResetPasswordService {
   FRONT_URL: string;
   constructor(
-    private authKafkaProviderService: AuthKafkaProviderService,
+    private authKafkaProviderService: KafkaAuthService,
     private configService: ConfigService,
   ) {
     this.FRONT_URL = this.configService.get('FRONT_URL');

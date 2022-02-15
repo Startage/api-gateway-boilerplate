@@ -1,7 +1,6 @@
 import { JwtStrategy } from '@/auth/strategies/jwt.strategy';
 import { LocalStrategy } from '@/auth/strategies/local.strategy';
-import { AuthKafkaProviderService } from '@/kafka-provider/auth-kafka-provider/auth-kafka-provider.service';
-import { KafkaProviderModule } from '@/kafka-provider/kafka-provider.module';
+import { KafkaModule } from '@/kafka/kafka.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -22,14 +21,9 @@ import { AuthService } from './auth.service';
       }),
       inject: [ConfigService],
     }),
-    KafkaProviderModule,
+    KafkaModule,
   ],
-  providers: [
-    AuthService,
-    LocalStrategy,
-    JwtStrategy,
-    AuthKafkaProviderService,
-  ],
+  providers: [AuthService, LocalStrategy, JwtStrategy],
   controllers: [AuthController],
 })
 export class AuthModule {}

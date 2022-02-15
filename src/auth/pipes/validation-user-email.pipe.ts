@@ -1,5 +1,5 @@
-import { AuthKafkaProviderService } from '@/kafka-provider/auth-kafka-provider/auth-kafka-provider.service';
-import { AuthSubscribedTopicsEnum } from '@/kafka-provider/auth-kafka-provider/auth-subscribed-topics.enum';
+import { AuthSubscribedTopicsEnum } from '@/kafka/kafka-auth/auth-subscribed-topics.enum';
+import { KafkaAuthService } from '@/kafka/kafka-auth/kafka-auth.service';
 import {
   ArgumentMetadata,
   NotAcceptableException,
@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 
 export class ValidationUserEmailPipe implements PipeTransform {
-  constructor(private authKafkaProviderService: AuthKafkaProviderService) {}
+  constructor(private authKafkaProviderService: KafkaAuthService) {}
 
   async transform(value: any, metadata: ArgumentMetadata): Promise<any> {
     const user = await this.authKafkaProviderService.sendAsync(

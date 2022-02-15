@@ -1,5 +1,5 @@
-import { StorageKafkaProviderService } from '@/kafka-provider/storage-kafka-provider/storage-kafka-provider.service';
-import { StorageSubscribedTopicsEnum } from '@/kafka-provider/storage-kafka-provider/storage-subscribed-topics.enum';
+import { KafkaStorageService } from '@/kafka/kafka-storage/kafka-storage.service';
+import { StorageSubscribedTopicsEnum } from '@/kafka/kafka-storage/storage-subscribed-topics.enum';
 import { UploadAvatarDto } from '@/storage-file/dto/upload-avatar.dto';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -8,7 +8,7 @@ import { ConfigService } from '@nestjs/config';
 export class StorageFileService {
   FRONT_URL: string;
   constructor(
-    private storageKafkaProviderService: StorageKafkaProviderService,
+    private storageKafkaProviderService: KafkaStorageService,
     private configService: ConfigService,
   ) {
     this.FRONT_URL = this.configService.get('FRONT_URL');
